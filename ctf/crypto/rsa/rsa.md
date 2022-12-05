@@ -2,6 +2,12 @@
 
 RSA is a public/private key encryption system that 
 
+### Requirements
+
+- [python3](https://www.python.org)
+- [pycryptodome](https://www.pycryptodome.org/)
+- [sympy](https://www.sympy.org)
+
 ### Basic Implementation
 
 ```python
