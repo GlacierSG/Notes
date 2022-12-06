@@ -1,6 +1,7 @@
-from Crypto.Util.strxor import strxor as xor
 from Crypto.Cipher import AES
-class AES_CBC:
+
+from Crypto.Util.strxor import strxor as xor
+class AES_CFB:
     def __init__(self, key: bytes, iv: bytes):
         self.aes = AES.new(key, AES.MODE_ECB)
         self.iv = iv # 16 byte iv
@@ -20,20 +21,20 @@ class AES_CBC:
             msg += xor(enc[i-16:i], blk_xor_prevenc)
         return msg
 
+
 if __name__ == '__main__':
     from aes_pad import pad, unpad
     import os
-
     key = os.urandom(16) # generate 16 byte key
     iv = os.urandom(16) # generate 16 byte iv
-    msg = pad(b'This is the message that will be encrypted')
+    msg = b'This is the messaege that will be encrypted'
 
-    aes = AES_CBC(key, iv)
+    aes = AES_CFB(key, iv)
 
     ### Encryption ###
     enc = aes.encrypt(msg)
 
-    aes_ = AES.new(key, AES.MODE_CBC, iv=iv)
+    aes_ = AES.new(key, AES.MODE_CFB, iv=iv)
     enc_ = aes_.encrypt(msg)
 
     assert enc_ == enc
@@ -41,8 +42,7 @@ if __name__ == '__main__':
     ### Decryption ###
     decr = aes.decrypt(enc)
 
-    aes_ = AES.new(key, AES.MODE_CBC, iv=iv)
+    aes_ = AES.new(key, AES.MODE_CFB, iv=iv)
     decr_ = aes_.decrypt(enc_)
 
     assert decr == decr_
-    print(f"Decrypted: {unpad(decr)}")

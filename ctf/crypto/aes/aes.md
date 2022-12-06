@@ -13,7 +13,7 @@ AES is a block cipher that uses 16 byte block sizes
 
 ## Basic Implementation
 
-Since AES can only encrypt 16 byte blocks, you need to make sure you pad your message to be a multiple of 16 bytes before encryption. There are a lot of ways to pad your message, but a common one is [PKCS#7](https://en.wikipedia.org/wiki/Padding_(cryptography)#PKCS#5_and_PKCS#7)
+Since AES can only encrypt 16 byte blocks, you need to make sure you pad your message to be a multiple of 16 bytes before encryption (Except for modes that turn it into stream ciphers). There are a lot of ways to pad your message, but a common one is [PKCS#7](https://en.wikipedia.org/wiki/Padding_(cryptography)#PKCS#5_and_PKCS#7)
 
 ```python
 def pad(msg: bytes): # pkcs#7 pad implementation
@@ -36,7 +36,7 @@ import os
 key = os.urandom(16) # generate 16 byte key
 aes = AES.new(key, AES.MODE_ECB)
 
-msg = b'This is the messaege that will be encrypted'
+msg = b'This is the message that will be encrypted'
 
 padded = pad(msg)
 assert len(padded) % 16 == 0
@@ -72,16 +72,17 @@ AES.new(key, AES.MODE_OPENPGP, ?)
 #### ECB Mode
 
 ```python
+from Crypto.Cipher import AES
 class AES_ECB:
     def __init__(self, key: bytes):
         self.aes = AES.new(key, AES.MODE_ECB)
-        
+
     def encrypt(self, msg: bytes):
         enc = b''
         for i in range(0,len(msg),16):
             enc += self.aes.encrypt(msg[i:i+16])
         return enc
-    
+
     def decrypt(self, enc: bytes):
         msg = b''
         for i in range(0,len(enc),16):
@@ -89,10 +90,11 @@ class AES_ECB:
         return msg
 ```
 
-### CBC Mode
+#### CBC Mode
 
 ```python
 from Crypto.Util.strxor import strxor as xor
+from Crypto.Cipher import AES
 class AES_CBC:
     def __init__(self, key: bytes, iv: bytes):
         self.aes = AES.new(key, AES.MODE_ECB)
@@ -114,7 +116,10 @@ class AES_CBC:
         return msg
 ```
 
+#### CFB Mode
 
+```python
+```
 
 
 
