@@ -1,6 +1,6 @@
 # RSA 
 
-RSA is a public/private key encryption system that 
+RSA is a public/private key encryption system
 
 ## Using
 
