@@ -5,6 +5,7 @@ import os
 ### Test Modes ###
 key = os.urandom(16)
 iv = os.urandom(16)
+nonce = os.urandom(8)
 
 
 from Crypto.Cipher import DES
@@ -15,6 +16,7 @@ from ecb import ECB
 from cbc import CBC
 from cfb import CFB
 from ofb import OFB
+from ctr import CTR
 
 
 Enc = AES
@@ -34,6 +36,9 @@ tests.append([
 ])
 tests.append([
     lambda : Enc.new(key, AES.MODE_OFB, iv=iv), OFB(block, key, iv=iv), False
+])
+tests.append([
+    lambda : Enc.new(key, AES.MODE_CTR, nonce=nonce), CTR(block, key, nonce=nonce), False
 ])
 
 for correct, test, padding in tests:
