@@ -1,4 +1,4 @@
-# RSA 
+# RSA (Rivest–Shamir–Adleman)
 
 RSA is a public/private key encryption system
 
@@ -10,7 +10,7 @@ RSA is a public/private key encryption system
 ## Basic Implementation
 
 ```python
-from Crypto.Util.number import bytes_to_long, long_to_bytes, getPrime
+from Crypto.Util.number import getPrime
 from math import gcd
 
 def gen_rsa_keys(e, primes_bit_len):
@@ -23,7 +23,7 @@ def gen_rsa_keys(e, primes_bit_len):
             break
     return p, q
 ```
-
+### RSA Implementation
 ```python
 class RSA:
     def __init__(self, e=0x10001, bit_len=1024):
@@ -79,22 +79,6 @@ class RSA:
         # CRT special case
         h = (qinv * (mp - mq)) % p 
         return (mq + h*q) % n
-```
-
-### Encryption/Decryption
-
-```python
-msg = bytes_to_long(b'encrypt this message')
-
-### Encryption ###
-rsa = RSA()
-enc = rsa.encrypt(msg)
-
-### Decryption ###
-msg_ = rsa.decrypt(enc)
-
-assert(msg == msg_)
-print(long_to_bytes(msg_))
 ```
 
 ## Attacks
