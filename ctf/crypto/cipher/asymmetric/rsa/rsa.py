@@ -10,41 +10,35 @@ def gen_rsa_keys(e, primes_bit_len):
             break
     return p, q
 
-from sympy.ntheory.modular import crt
 class RSA:
     def __init__(self, e=0x10001, bit_len=1024):
         p, q = gen_rsa_keys(e, bit_len)
         n = p*q
         phi = (p-1)*(q-1)
         d = pow(e, -1, phi)
-        dp = d % (p-1)
-        dq = d % (q-1)
 
         self.pub  = (n, e) # public key
-        self.priv = (p, q, dp, dq) # private key
+        self.priv = (d) # private key
 
     def encrypt(self, msg: int):
         n, e = self.pub
         assert 0 <= msg < n
-	
         return pow(msg, e, n)
 
     def decrypt(self, enc: int):
-        n, _ = self.pub
-        p, q, dp, dq = self.priv
+        n, e = self.pub
+        d = self.priv
+        return pow(enc, d, n)
 
-        mp = pow(enc, dp, n)
-        mq = pow(enc, dq, n)
-        return crt([p,q], [mp,mq])[0]
+if __name__ == '__main__':
+    msg = bytes_to_long(b'encrypt this message')
 
-msg = bytes_to_long(b'encrypt this message')
+    ### Encryption ###
+    rsa = RSA()
+    enc = rsa.encrypt(msg)
 
-### Encryption ###
-rsa = RSA()
-enc = rsa.encrypt(msg)
+    ### Decryption ###
+    msg_ = rsa.decrypt(enc)
 
-### Decryption ###
-msg_ = rsa.decrypt(enc)
-
-print(f'after encryption: {long_to_bytes(msg_)}')
-assert(msg == msg_)
+    assert(msg == msg_)
+    print(f'after encryption: {long_to_bytes(msg_)}')

@@ -1,37 +1,36 @@
-from Crypto.Cipher import AES
-
-class AES_CFB:
-    def __init__(self, key: bytes, iv: bytes):
-        self.aes = AES.new(key, AES.MODE_ECB)
-        self.iv = iv # 16 byte iv
+class CFB:
+    def __init__(self, block, key: bytes, iv: bytes):
+        self.block = block # .encrypt(), .decrypt()
+        self.iv = iv 
 
     def encrypt(self, msg: bytes):
-        tmp = self.iv
+        state = self.iv
         enc = b''
         for i in range(0,len(msg)):
-            enc_tmp = self.aes.encrypt(tmp)
-            enc += bytes([enc_tmp[0] ^ msg[i]])
-            tmp = tmp[1:] + bytes([enc[-1]])
+            enc_state = self.block.encrypt(state)
+            enc += bytes([enc_state[0] ^ msg[i]])
+            state = state[1:] + bytes([enc[-1]])
         return enc
 
     def decrypt(self, enc: bytes):
-        tmp = self.iv
+        state = self.iv
         msg = b''
         for i in range(0,len(enc)):
-            enc_tmp = self.aes.encrypt(tmp)
-            msg += bytes([enc_tmp[0] ^ enc[i]])
-            tmp = tmp[1:] + bytes([enc[i]])
+            enc_state = self.block.encrypt(state)
+            msg += bytes([enc_state[0] ^ enc[i]])
+            state = state[1:] + bytes([enc[i]])
         return msg 
 
 
 if __name__ == '__main__':
-    from aes_pad import pad, unpad
+    from Crypto.Cipher import AES
     import os
+
     key = os.urandom(16) # generate 16 byte key
     iv = os.urandom(16) # generate 16 byte iv
     msg = b'This is the message that will be encrypted'
 
-    aes = AES_CFB(key, iv)
+    aes = CFB(AES.new(key, AES.MODE_ECB), key, iv)
 
     ### Encryption ###
     enc = aes.encrypt(msg)
@@ -48,3 +47,4 @@ if __name__ == '__main__':
     decr_ = aes_.decrypt(enc_)
 
     assert decr == decr_, f'{decr = }, {decr_ = }'
+    print(f"Decrypted: {decr}")

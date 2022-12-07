@@ -10,6 +10,7 @@ AES is a block cipher that uses 16 byte block sizes
 ## Links
 
 * [Explanation of 5 basic AES modes (With illustrations)](https://www.highgo.ca/2019/08/08/the-difference-in-five-modes-in-the-aes-encryption-algorithm/)
+* [Rust implementation of some AES modes (with illustrations)](https://github.com/RustCrypto/block-modes)
 
 ## Basic Implementation
 
