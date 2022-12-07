@@ -1,5 +1,8 @@
-from Crypto.Util.strxor import strxor as xor
 from Crypto.Cipher import AES
+
+def xor(x:bytes, y:bytes): 
+    return bytes([x_^y_ for x_,y_ in zip(x,y)])
+
 class AES_CBC:
     def __init__(self, key: bytes, iv: bytes):
         self.aes = AES.new(key, AES.MODE_ECB)

@@ -36,6 +36,12 @@ tests.append([
     AES_CBC_, AES_CBC(key,iv)
 ])
 
+from aes_cfb import AES_CFB
+def AES_CFB_(): return AES.new(key, AES.MODE_CFB, iv=iv)
+tests.append([
+    AES_CFB_, AES_CFB(key,iv)
+])
+
 for correct, test in tests:
     for i in range(1000):
         msg = pad(b'a'*i)

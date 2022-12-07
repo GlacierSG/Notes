@@ -58,7 +58,7 @@ print(msg_)
 ```python
 AES.new(key, AES.MODE_ECB)
 AES.new(key, AES.MODE_CBC, iv=iv)
-AES.new(key, AES.MODE_CFB, ?)
+AES.new(key, AES.MODE_CFB, iv=iv)
 AES.new(key, AES.MODE_EAX, ?)
 AES.new(key, AES.MODE_GCM, ?)
 AES.new(key, AES.MODE_OFB, ?)
@@ -93,8 +93,11 @@ class AES_ECB:
 #### CBC Mode
 
 ```python
-from Crypto.Util.strxor import strxor as xor
 from Crypto.Cipher import AES
+
+def xor(x:bytes, y:bytes): 
+    return bytes([x_^y_ for x_,y_ in zip(x,y)])
+
 class AES_CBC:
     def __init__(self, key: bytes, iv: bytes):
         self.aes = AES.new(key, AES.MODE_ECB)
@@ -119,6 +122,30 @@ class AES_CBC:
 #### CFB Mode
 
 ```python
+from Crypto.Cipher import AES
+
+class AES_CFB:
+    def __init__(self, key: bytes, iv: bytes):
+        self.aes = AES.new(key, AES.MODE_ECB)
+        self.iv = iv # 16 byte iv
+
+    def encrypt(self, msg: bytes):
+        tmp = self.iv
+        enc = b''
+        for i in range(0,len(msg)):
+            enc_tmp = self.aes.encrypt(tmp)
+            enc += bytes([enc_tmp[0] ^ msg[i]])
+            tmp = tmp[1:] + bytes([enc[-1]])
+        return enc
+
+    def decrypt(self, enc: bytes):
+        tmp = self.iv
+        msg = b''
+        for i in range(0,len(enc)):
+            enc_tmp = self.aes.encrypt(tmp)
+            msg += bytes([enc_tmp[0] ^ enc[i]])
+            tmp = tmp[1:] + bytes([enc[i]])
+        return msg 
 ```
 
 
