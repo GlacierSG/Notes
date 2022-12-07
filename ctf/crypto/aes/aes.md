@@ -53,18 +53,18 @@ print(msg_)
 
 ### AES Modes
 
-[pycryptodome](https://www.pycryptodome.org/) implements all different modes for AES
+[pycryptodome](https://www.pycryptodome.org/) implements these AES modes
 
 ```python
 AES.new(key, AES.MODE_ECB)
 AES.new(key, AES.MODE_CBC, iv=iv)
 AES.new(key, AES.MODE_CFB, iv=iv)
+AES.new(key, AES.MODE_OFB, iv=iv)
+AES.new(key, AES.MODE_CTR, nonce=nonce)
 AES.new(key, AES.MODE_EAX, ?)
 AES.new(key, AES.MODE_GCM, ?)
-AES.new(key, AES.MODE_OFB, ?)
 AES.new(key, AES.MODE_SIV, ?)
 AES.new(key, AES.MODE_CCM, ?)
-AES.new(key, AES.MODE_CTR, ?)
 AES.new(key, AES.MODE_OCB, ?)
 AES.new(key, AES.MODE_OPENPGP, ?)
 ```
@@ -73,6 +73,7 @@ AES.new(key, AES.MODE_OPENPGP, ?)
 
 ```python
 from Crypto.Cipher import AES
+
 class AES_ECB:
     def __init__(self, key: bytes):
         self.aes = AES.new(key, AES.MODE_ECB)
@@ -148,5 +149,35 @@ class AES_CFB:
         return msg 
 ```
 
+#### OFB Mode
 
+```python
+from Crypto.Cipher import AES
+
+def xor(x:bytes, y:bytes): 
+    return bytes([x_^y_ for x_,y_ in zip(x,y)])
+
+class AES_OFB:
+    def __init__(self, key: bytes, iv: bytes):
+        self.aes = AES.new(key, AES.MODE_ECB)
+        self.iv = iv # 16 byte iv
+
+    def encrypt(self, msg: bytes):
+        tmp = self.iv
+        enc = b''
+        for i in range(0,len(msg), 16):
+            enc_tmp = self.aes.encrypt(tmp)
+            enc += xor(enc_tmp, msg[i:i+16])
+            tmp = enc_tmp
+        return enc
+
+    def decrypt(self, enc: bytes):
+        tmp = self.iv
+        msg = b''
+        for i in range(0,len(enc), 16):
+            enc_tmp = self.aes.encrypt(tmp)
+            msg += xor(enc_tmp, enc[i:i+16])
+            tmp = enc_tmp
+        return msg
+```
 
