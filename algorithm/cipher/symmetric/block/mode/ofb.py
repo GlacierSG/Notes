@@ -37,16 +37,8 @@ if __name__ == '__main__':
     ### Encryption ###
     enc = aes.encrypt(msg)
 
-    aes_ = AES.new(key, AES.MODE_OFB, iv=iv)
-    enc_ = aes_.encrypt(msg)
-
-    assert enc_ == enc, f'{enc = }, {enc_ = }'
 
     ### Decryption ###
     decr = aes.decrypt(enc)
 
-    aes_ = AES.new(key, AES.MODE_OFB, iv=iv)
-    decr_ = aes_.decrypt(enc_)
-
-    assert decr == decr_, f'{decr = }, {decr_ = }'
     print(f"Decrypted: {decr}")

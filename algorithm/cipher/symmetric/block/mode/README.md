@@ -2,6 +2,7 @@
 
 ## Links
 * [Wikipedia: Block cipher mode of operation](https://en.wikipedia.org/wiki/Block_cipher_mode_of_operation)
+- [pycryptodome documentation for modes](https://pycryptodome.readthedocs.io/en/latest/src/cipher/classic.html)
 
 ## ECB Mode
 ```python

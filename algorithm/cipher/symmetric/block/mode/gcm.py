@@ -1,4 +1,9 @@
-class CFB:
+def xor(x:bytes, y:bytes):
+    return bytes([x_^y_ for x_,y_ in zip(x,y)])
+
+def ghash(aad, msg):
+
+class GCM:
     def __init__(self, block, key: bytes, iv: bytes):
         self.block = block # .encrypt(), .decrypt()
         self.iv = iv 
