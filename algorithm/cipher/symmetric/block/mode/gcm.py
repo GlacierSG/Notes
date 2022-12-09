@@ -2,11 +2,13 @@ def xor(x:bytes, y:bytes):
     return bytes([x_^y_ for x_,y_ in zip(x,y)])
 
 def ghash(aad, msg):
+    data = aad + b'\x00'*(-len(aad) % 16)
+    data += msg + b'\x00'*(-len(msg) % 16)
 
 class GCM:
-    def __init__(self, block, key: bytes, iv: bytes):
+    def __init__(self, block, key: bytes):
         self.block = block # .encrypt(), .decrypt()
-        self.iv = iv 
+	self.key = key
 
     def encrypt(self, msg: bytes):
         state = self.iv

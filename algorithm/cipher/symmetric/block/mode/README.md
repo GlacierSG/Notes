@@ -4,43 +4,47 @@
 * [Wikipedia: Block cipher mode of operation](https://en.wikipedia.org/wiki/Block_cipher_mode_of_operation)
 - [pycryptodome documentation for modes](https://pycryptodome.readthedocs.io/en/latest/src/cipher/classic.html)
 
-## ECB Mode
+## Classic modes
+
+### Electronic CodeBook (ECB) Mode
+
 ```python
 class ECB:
-    def __init__(self, block, key: bytes):
-        self.block = block # .encrypt(), .decrypt()
-        self.block_size = block.block_size
+    def __init__(self, cipher):
+        self.cipher = cipher # .encrypt(), .decrypt()
+        self.block_size = cipher.block_size
 
     def encrypt(self, msg: bytes):
         enc = b''
         for i in range(0,len(msg),self.block_size):
-            enc += self.block.encrypt(msg[i:i+self.block_size])
+            enc += self.cipher.encrypt(msg[i:i+self.block_size])
         return enc
 
     def decrypt(self, enc: bytes):
         msg = b''
         for i in range(0,len(enc),self.block_size):
-            msg += self.block.decrypt(enc[i:i+self.block_size])
+            msg += self.cipher.decrypt(enc[i:i+self.block_size])
         return msg
 ```
 
-## CBC Mode
+### Ciphertext Block Chaining (CBC) Mode
+
 ```python
-def xor(x:bytes, y:bytes): 
+def xor(x:bytes, y:bytes):
     return bytes([x_^y_ for x_,y_ in zip(x,y)])
 
 class CBC:
-    def __init__(self, block, key: bytes, iv: bytes):
-        self.block = block # .encrypt(), .decrypt()
-        self.block_size = block.block_size
-        self.iv = iv 
+    def __init__(self, cipher, iv: bytes):
+        self.cipher = cipher # .encrypt(), .decrypt()
+        self.block_size = cipher.block_size
+        self.iv = iv
 
     def encrypt(self, msg: bytes):
         enc = self.iv
         for i in range(0, len(msg), self.block_size):
-            blk_xor_prevenc = xor(enc[i:i+self.block_size], 
+            blk_xor_prevenc = xor(enc[i:i+self.block_size],
                                   msg[i:i+self.block_size])
-            enc += self.block.encrypt(blk_xor_prevenc)
+            enc += self.cipher.encrypt(blk_xor_prevenc)
         return enc[self.block_size:]
 
     def decrypt(self, enc: bytes):
@@ -48,23 +52,23 @@ class CBC:
         msg = b''
         for i in range(self.block_size,len(enc),self.block_size):
             encblk = enc[i:i+self.block_size]
-            blk_xor_prevenc = self.block.decrypt(encblk)
+            blk_xor_prevenc = self.cipher.decrypt(encblk)
             msg += xor(enc[i-self.block_size:i], blk_xor_prevenc)
         return msg
 ```
 
-## CFB Mode
+### Cipher FeedBack (CFB) Mode
 ```python
 class CFB:
-    def __init__(self, block, key: bytes, iv: bytes):
-        self.block = block # .encrypt(), .decrypt()
-        self.iv = iv 
+    def __init__(self, cipher, iv: bytes):
+        self.cipher = cipher # .encrypt(), .decrypt()
+        self.iv = iv
 
     def encrypt(self, msg: bytes):
         state = self.iv
         enc = b''
         for i in range(0,len(msg)):
-            enc_state = self.block.encrypt(state)
+            enc_state = self.cipher.encrypt(state)
             enc += bytes([enc_state[0] ^ msg[i]])
             state = state[1:] + bytes([enc[-1]])
         return enc
@@ -73,47 +77,51 @@ class CFB:
         state = self.iv
         msg = b''
         for i in range(0,len(enc)):
-            enc_state = self.block.encrypt(state)
+            enc_state = self.cipher.encrypt(state)
             msg += bytes([enc_state[0] ^ enc[i]])
             state = state[1:] + bytes([enc[i]])
-        return msg 
+        return msg
 ```
 
-## OFB Mode
+### Output FeedBack (OFB) Mode
 ```python
-class CFB:
-    def __init__(self, block, key: bytes, iv: bytes):
-        self.block = block # .encrypt(), .decrypt()
-        self.iv = iv 
+def xor(x:bytes, y:bytes):
+    return bytes([x_^y_ for x_,y_ in zip(x,y)])
+
+class OFB:
+    def __init__(self, cipher, iv: bytes):
+        self.cipher = cipher # .encrypt(), .decrypt()
+        self.block_size = cipher.block_size
+        self.iv = iv
 
     def encrypt(self, msg: bytes):
-        state = self.iv
+        tmp = self.iv
         enc = b''
-        for i in range(0,len(msg)):
-            enc_state = self.block.encrypt(state)
-            enc += bytes([enc_state[0] ^ msg[i]])
-            state = state[1:] + bytes([enc[-1]])
+        for i in range(0,len(msg), self.block_size):
+            enc_tmp = self.cipher.encrypt(tmp)
+            enc += xor(enc_tmp, msg[i:i+self.block_size])
+            tmp = enc_tmp
         return enc
 
     def decrypt(self, enc: bytes):
-        state = self.iv
+        tmp = self.iv
         msg = b''
-        for i in range(0,len(enc)):
-            enc_state = self.block.encrypt(state)
-            msg += bytes([enc_state[0] ^ enc[i]])
-            state = state[1:] + bytes([enc[i]])
-        return msg 
+        for i in range(0,len(enc), self.block_size):
+            enc_tmp = self.cipher.encrypt(tmp)
+            msg += xor(enc_tmp, enc[i:i+self.block_size])
+            tmp = enc_tmp
+        return msg
 ```
 
-## CTR Mode
+### CounTeR mode (CTR) Mode
 ```python
-def xor(x:bytes, y:bytes): 
+def xor(x:bytes, y:bytes):
     return bytes([x_^y_ for x_,y_ in zip(x,y)])
 
 class CTR:
-    def __init__(self, block, key: bytes, nonce: bytes):
-        self.block = block # .encrypt(), .decrypt()
-        self.block_size = block.block_size
+    def __init__(self, cipher, nonce: bytes):
+        self.cipher = cipher # .encrypt(), .decrypt()
+        self.block_size = cipher.block_size
         self.nonce = nonce
 
     def encrypt(self, msg: bytes):
@@ -121,7 +129,7 @@ class CTR:
         enc = b''
         for i in range(0,len(msg),self.block_size):
             c = self.nonce + counter.to_bytes(len(self.nonce),'big')
-            enc_tmp = self.block.encrypt(c)
+            enc_tmp = self.cipher.encrypt(c)
             enc += xor(enc_tmp, msg[i:i+self.block_size])
             counter += 1
         return enc
@@ -131,8 +139,22 @@ class CTR:
         msg = b''
         for i in range(0,len(enc),self.block_size):
             c = self.nonce + counter.to_bytes(len(self.nonce),'big')
-            enc_tmp = self.block.encrypt(c)
+            enc_tmp = self.cipher.encrypt(c)
             msg += xor(enc_tmp, enc[i:i+self.block_size])
             counter += 1
-    return msg 
+        return msg
 ```
+
+### OpenPGP Mode
+
+## Modern Modes
+
+### Counter with CBC-MAC (CCM) Mode
+
+### EAX Mode
+
+### Galois/Counter Mode (GCM) Mode
+
+### Synthetic Initialization Vector (SIV) Mode
+
+### Offset CodeBook (OCB) Mode

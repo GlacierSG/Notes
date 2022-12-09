@@ -22,24 +22,24 @@ for Enc, key_len in ENC:
     iv = os.urandom(key_len)
     nonce = os.urandom(key_len//2)
 
-    block = Enc.new(key, AES.MODE_ECB)
+    cipher = Enc.new(key, AES.MODE_ECB)
 
     tests = []
 
     tests.append([
-        lambda : Enc.new(key, AES.MODE_ECB), ECB(block, key), True
+        lambda : Enc.new(key, AES.MODE_ECB), ECB(cipher), True
     ])
     tests.append([
-        lambda : Enc.new(key, AES.MODE_CBC, iv=iv), CBC(block, key, iv=iv), True
+        lambda : Enc.new(key, AES.MODE_CBC, iv=iv), CBC(cipher, iv=iv), True
     ])
     tests.append([
-        lambda : Enc.new(key, AES.MODE_CFB, iv=iv), CFB(block, key, iv=iv), False
+        lambda : Enc.new(key, AES.MODE_CFB, iv=iv), CFB(cipher, iv=iv), False
     ])
     tests.append([
-        lambda : Enc.new(key, AES.MODE_OFB, iv=iv), OFB(block, key, iv=iv), False
+        lambda : Enc.new(key, AES.MODE_OFB, iv=iv), OFB(cipher, iv=iv), False
     ])
     tests.append([
-        lambda : Enc.new(key, AES.MODE_CTR, nonce=nonce), CTR(block, key, nonce=nonce), False
+        lambda : Enc.new(key, AES.MODE_CTR, nonce=nonce), CTR(cipher, nonce=nonce), False
     ])
 
     for correct, test, padding in tests:

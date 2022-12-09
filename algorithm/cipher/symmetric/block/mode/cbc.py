@@ -2,9 +2,9 @@ def xor(x:bytes, y:bytes):
     return bytes([x_^y_ for x_,y_ in zip(x,y)])
 
 class CBC:
-    def __init__(self, block, key: bytes, iv: bytes):
-        self.block = block # .encrypt(), .decrypt()
-        self.block_size = block.block_size
+    def __init__(self, cipher, iv: bytes):
+        self.cipher = cipher # .encrypt(), .decrypt()
+        self.block_size = cipher.block_size
         self.iv = iv 
 
     def encrypt(self, msg: bytes):
@@ -12,7 +12,7 @@ class CBC:
         for i in range(0, len(msg), self.block_size):
             blk_xor_prevenc = xor(enc[i:i+self.block_size], 
                                   msg[i:i+self.block_size])
-            enc += self.block.encrypt(blk_xor_prevenc)
+            enc += self.cipher.encrypt(blk_xor_prevenc)
         return enc[self.block_size:]
 
     def decrypt(self, enc: bytes):
@@ -20,7 +20,7 @@ class CBC:
         msg = b''
         for i in range(self.block_size,len(enc),self.block_size):
             encblk = enc[i:i+self.block_size]
-            blk_xor_prevenc = self.block.decrypt(encblk)
+            blk_xor_prevenc = self.cipher.decrypt(encblk)
             msg += xor(enc[i-self.block_size:i], blk_xor_prevenc)
         return msg
 
@@ -33,7 +33,7 @@ if __name__ == '__main__':
     iv = os.urandom(16) # generate 16 byte iv
     msg = pad(b'This is the message that will be encrypted',16)
 
-    aes = CBC(AES.new(key, AES.MODE_ECB), key, iv)
+    aes = CBC(AES.new(key, AES.MODE_ECB), iv)
 
     ### Encryption ###
     enc = aes.encrypt(msg)
