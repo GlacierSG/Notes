@@ -11,9 +11,9 @@ class CTR:
         counter = 0
         enc = b''
         for i in range(0,len(msg),self.block_size):
-            c = self.nonce + counter.to_bytes(len(self.nonce),'big')
-            enc_tmp = self.cipher.encrypt(c)
-            enc += xor(enc_tmp, msg[i:i+self.block_size])
+            ctr = self.nonce + counter.to_bytes(len(self.nonce),'big')
+            enc_ctr = self.cipher.encrypt(ctr)
+            enc += xor(enc_ctr, msg[i:i+self.block_size])
             counter += 1
         return enc
 
@@ -21,9 +21,9 @@ class CTR:
         counter = 0
         msg = b''
         for i in range(0,len(enc),self.block_size):
-            c = self.nonce + counter.to_bytes(len(self.nonce),'big')
-            enc_tmp = self.cipher.encrypt(c)
-            msg += xor(enc_tmp, enc[i:i+self.block_size])
+            ctr = self.nonce + counter.to_bytes(len(self.nonce),'big')
+            enc_ctr = self.cipher.encrypt(ctr)
+            msg += xor(enc_ctr, enc[i:i+self.block_size])
             counter += 1
         return msg 
 

@@ -8,21 +8,21 @@ class OFB:
         self.iv = iv 
 
     def encrypt(self, msg: bytes):
-        tmp = self.iv
+        state = self.iv
         enc = b''
         for i in range(0,len(msg), self.block_size):
-            enc_tmp = self.cipher.encrypt(tmp)
-            enc += xor(enc_tmp, msg[i:i+self.block_size])
-            tmp = enc_tmp
+            enc_state = self.cipher.encrypt(state)
+            enc += xor(enc_state, msg[i:i+self.block_size])
+            state = enc_state
         return enc
 
     def decrypt(self, enc: bytes):
-        tmp = self.iv
+        state = self.iv
         msg = b''
         for i in range(0,len(enc), self.block_size):
-            enc_tmp = self.cipher.encrypt(tmp)
-            msg += xor(enc_tmp, enc[i:i+self.block_size])
-            tmp = enc_tmp
+            enc_state = self.cipher.encrypt(state)
+            msg += xor(enc_state, enc[i:i+self.block_size])
+            state = enc_state
         return msg
 
 if __name__ == '__main__':
