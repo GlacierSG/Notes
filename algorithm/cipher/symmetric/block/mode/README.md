@@ -6,7 +6,7 @@
 
 ## Classic modes
 
-### Electronic CodeBook (ECB) Mode
+### Electronic CodeBook (ECB)
 
 ```python
 class ECB:
@@ -27,7 +27,7 @@ class ECB:
         return msg
 ```
 
-### Ciphertext Block Chaining (CBC) Mode
+### Ciphertext Block Chaining (CBC)
 
 ```python
 def xor(x:bytes, y:bytes):
@@ -57,7 +57,7 @@ class CBC:
         return msg
 ```
 
-### Cipher FeedBack (CFB) Mode
+### Cipher FeedBack (CFB)
 ```python
 class CFB:
     def __init__(self, cipher, iv: bytes):
@@ -83,7 +83,7 @@ class CFB:
         return msg
 ```
 
-### Output FeedBack (OFB) Mode
+### Output FeedBack (OFB)
 ```python
 def xor(x:bytes, y:bytes):
     return bytes([x_^y_ for x_,y_ in zip(x,y)])
@@ -113,7 +113,7 @@ class OFB:
         return msg
 ```
 
-### CounTeR mode (CTR) Mode
+### CounTeR (CTR)
 ```python
 def xor(x:bytes, y:bytes):
     return bytes([x_^y_ for x_,y_ in zip(x,y)])
@@ -145,16 +145,16 @@ class CTR:
         return msg
 ```
 
-### OpenPGP Mode
+### OpenPGP
 
 ## Modern Modes
 
-### Counter with CBC-MAC (CCM) Mode
+### Counter with CBC-MAC (CCM)
 
-### EAX Mode
+### EAX
 
-### Galois/Counter Mode (GCM) Mode
+### Galois/Counter Mode (GCM)
 
-### Synthetic Initialization Vector (SIV) Mode
+### Synthetic Initialization Vector (SIV)
 
-### Offset CodeBook (OCB) Mode
+### Offset CodeBook (OCB)
