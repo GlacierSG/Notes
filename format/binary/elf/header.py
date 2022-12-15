@@ -2,19 +2,121 @@ import logging
 
 MAGIC = b'\x7fELF'
 
-def capacity(val:int):
+
+class Header:
+	def __init__(self, data: bytes):
+		i = 0
+		# e_ident[EI_MAG0] through e_ident[EI_MAG3]
+		self.magic_number = data[i:][:4]
+		i+=4
+		# e_ident[EI_CLASS]
+		self.capacity = data[i:][0] 
+		i+=1
+		# e_ident[EI_DATA]
+		self.endianness = data[i:][0] 
+		i+=1
+		# e_ident[EI_VERSION]
+		self.version1 = data[i:][0] 
+		i += 1
+		# e_ident[EI_OSABI]
+		self.target_os = data[i:][0] 
+		i+=1
+		# e_ident[EI_ABIVERSION]
+		self.abi_version = data[i:][0]
+		i+=1	
+		# e_ident[EI_PAD]
+		self.padding_bytes = data[i:][:7] 
+		i+=7
+
+		endian = self.endian()
+		
+		# e_type
+		self.type = int.from_bytes(data[i:][:2], endian)
+		i+=2
+		# e_machine
+		self.machine = int.from_bytes(data[i:][:2], endian)
+		i+=2
+		#  	e_version
+		self.version2 = int.from_bytes(data[i:][:4], endian)
+		i+=4
+
+		size = 8 if self.is64bit() else 4
+		
+		# e_entry
+		self.entry= int.from_bytes(data[i:][:size], endian) # 0 if no entry point
+		i+=size
+		# e_phoff
+		self.phoff = int.from_bytes(data[i:][:size], endian)
+		i+=size
+		# e_shoff
+		self.shoff= int.from_bytes(data[i:][:size], endian)
+		i+=size
+		
+		# e_flags
+		self.flags = int.from_bytes(data[i:][:4], endian)
+		i+=4
+		# e_ehsize
+		self.ehsize= int.from_bytes(data[i:][:2], endian)
+		i+=2	
+		# e_phentsize
+		self.phentsize= int.from_bytes(data[i:][:2], endian)
+		i+=2
+		# e_phnum
+		self.phnum= int.from_bytes(data[i:][:2], endian)
+		i+=2
+		# e_shentsize
+		self.shentsize=int.from_bytes(data[i:][:2], endian)
+		i+=2
+		# e_shnum
+		self.shnum =int.from_bytes(data[i:][:2], endian)
+		i+=2
+		# e_shstrndx
+		self.shstrndx = int.from_bytes(data[i:][:2], endian)
+		i+=2
+
+		self.size = i	
+
+	def is64bit(self):
+		return (self.capacity == 2)
+
+	def endian(self):
+		return header_endianness(self.endianness)
+
+class ProgramHeaderEntry:
+	def __init__(self, data: bytes, header: Header, entry_i: int):
+		size = header.phentsize
+		endian = header.endian()
+
+		i = header.phoff + size*entry_i
+
+		self.type = int.from_bytes(data[i:][:4], endian)
+		i += 4
+		# ...
+
+
+def get_program_header_entries(data, header):
+	entries = []
+	for entry_i in range(header.phnum):
+		entries.append(ProgramHeaderEntry(data, header, entry_i))
+	return entries
+
+
+			
+		
+### BEGINNING OF HEADER FUNCTIONS ###
+def header_capacity(val:int):
 	match val:
 		case 1: return '32-bit'
 		case 2: return '64-bit'
 		case _: return None
 
-def endianness(val:int):
+def header_endianness(val:int):
 	match val:
 		case 1: return 'little'
 		case 2: return 'big'
 		case _: return None
 
-def target_os(val:int):
+def header_target_os(val:int):
 	match val: 
 		case 0x00: return 'System V'
 		case 0x01: return 'HP-UX'
@@ -36,7 +138,7 @@ def target_os(val:int):
 		case 0x12: return 'Stratus Technologies OpenVOS'
 		case _: return None
 
-def object_file_type(val: int):
+def header_object_file_type(val: int):
 	match val:
 		case 0x00: return 'ET_NONE' # Unknown
 		case 0x01: return 'ET_REL' # Relocatable file
@@ -49,7 +151,7 @@ def object_file_type(val: int):
 		case 0xffff: return 'ET_HIPROC' # Processor specific
 		case _: return None # Err
 		
-def instruction_set(val: int):
+def header_instruction_set(val: int):
 	match val:
 		case 0x00: return 'No specific instruction set'
 		case 0x01: return 'AT&T WE 32100'
@@ -125,112 +227,40 @@ def instruction_set(val: int):
 		case 0x101: return 'WDC 65C816'
 		case _: None
 
-def version(val):
+def header_version(val):
 	match val:
 		case 1: return 1 # Set to 1 for the original and current version of ELF. 
 		case _: return None
 
-class Header:
-	def __init__(self, data: bytes):
-		i = 0
-		# e_ident[EI_MAG0] through e_ident[EI_MAG3]
-		self.magic_number = data[i:][:4]
-		i+=4
-		# e_ident[EI_CLASS]
-		self.capacity = data[i:][0] 
-		i+=1
-		# e_ident[EI_DATA]
-		self.endianness = data[i:][0] 
-		i+=1
-		# e_ident[EI_VERSION]
-		self.version1 = data[i:][0] 
-		i += 1
-		# e_ident[EI_OSABI]
-		self.target_os = data[i:][0] 
-		i+=1
-		# e_ident[EI_ABIVERSION]
-		self.abi_version = data[i:][0]
-		i+=1	
-		# e_ident[EI_PAD]
-		self.padding_bytes = data[i:][:7] 
-		i+=7
-
-		endian = endianness(self.endianness)
-		
-		# e_type
-		self.type = int.from_bytes(data[i:][:2],endian)
-		i+=2
-		# e_machine
-		self.machine = int.from_bytes(data[i:][:2],endian)
-		i+=2
-		#  	e_version
-		self.version2 = int.from_bytes(data[i:][:4],endian)
-		i+=4
-
-		is64 = (self.capacity == 2)
-		size = 8 if is64 else 4
-		
-		# e_entry
-		self.entry= int.from_bytes(data[i:][:size],endian) # 0 if no entry point
-		i+=size
-		# e_phoff
-		self.phoff = int.from_bytes(data[i:][:size],endian)
-		i+=size
-		# e_shoff
-		self.shoff= int.from_bytes(data[i:][:size],endian)
-		i+=size
-		
-		# e_flags
-		self.flags = int.from_bytes(data[i:][:4],endian)
-		i+=4
-		# e_ehsize
-		self.ehsize= int.from_bytes(data[i:][:2],endian)
-		i+=2	
-		# e_phentsize
-		self.phentsize= int.from_bytes(data[i:][:2],endian)
-		i+=2
-		# e_phnum
-		self.phnum= int.from_bytes(data[i:][:2],endian)
-		i+=2
-		# e_shentsize
-		self.shentsize=int.from_bytes(data[i:][:2],endian)
-		i+=2
-		# e_shnum
-		self.shnum =int.from_bytes(data[i:][:2],endian)
-		i+=2
-		# e_shstrndx
-		self.shstrndx = int.from_bytes(data[i:][:2],endian)
-		i+=2
-
-		self.size = i	
 		
 		
-def check_fields(header):
+def check_header(header):
 	if header.magic_number != MAGIC: 
 		logging.warning('magic was incorrect')
-	if capacity(header.capacity) is None:
+	if header_capacity(header.capacity) is None:
 		logging.warning('only 32-bit and 64-bit supported')
-	if endianness(header.endianness) is None:
-		logging.warning('Only big and short endianness supported')
-	if version(header.version1) is None:
+	if header_endianness(header.endianness) is None:
+		logging.warning('Only big and short endiannesses supported')
+	if header_version(header.version1) is None:
 		logging.warning('unrecognized version1')
-	if target_os(header.target_os) is None:
-		logging.warning('unknown targetting os')
+	if header_target_os(header.target_os) is None:
+		logging.warning('unknown target os')
 
 	if header.padding_bytes != b'\x00'*7:
 		logging.warning('padding bytes not filled with zeros')
-	if object_file_type(header.type) is None:
+	if header_object_file_type(header.type) is None:
 		logging.warning('unknown object file type')
-	if instruction_set(header.machine) is None:
+	if header_instruction_set(header.machine) is None:
 		logging.warning('unknown instruction set architecture')
-	if version(header.version2) is None:
+	if header_version(header.version2) is None:
 		logging.warning('unrecognized version2')
 
+### END OF HEADER FUNCTION ###
 
 
 
 if __name__ == '__main__':
 	file = open('normal','rb').read()
 	header = Header(file)
-	check_fields(header)
+	check_header(header)
 	
